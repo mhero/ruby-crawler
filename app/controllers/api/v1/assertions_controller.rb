@@ -14,7 +14,7 @@ module Api
       def create
         @assertion = Assertion.build_from_web_crawler(assertion_params)
         if @assertion.nil?
-          render json: { error: 'Invalid URL' }, status: :unprocessable_entity
+          render json: { error: "Invalid URL" }, status: :unprocessable_entity
         elsif @assertion.save
           render json: @assertion, status: :created
         else
