@@ -1,4 +1,3 @@
-# spec/services/web_crawler_spec.rb
 require 'rails_helper'
 
 RSpec.describe WebCrawler, type: :service do
@@ -7,7 +6,7 @@ RSpec.describe WebCrawler, type: :service do
 
   describe '#initialize' do
     it 'sets the url and fetches the page' do
-      expect(crawler.url).to eq("https://example.com")
+      expect(crawler.url).to eq(url)
       expect(crawler.doc).to be_a(Nokogiri::HTML::Document)
     end
   end
@@ -15,7 +14,7 @@ RSpec.describe WebCrawler, type: :service do
   describe '#fetch_page' do
     context 'when the URL is valid' do
       it 'fetches the page content successfully' do
-        allow(URI).to receive(:open).with("https://example.com").and_return('<html><body>Hello</body></html>')
+        allow(URI).to receive(:open).with(url).and_return('<html><body>Hello</body></html>')
         expect(crawler.doc.text).to include('Hello')
       end
     end
@@ -23,10 +22,11 @@ RSpec.describe WebCrawler, type: :service do
     context 'when the URL is invalid' do
       before do
         allow(URI).to receive(:open).and_raise(StandardError.new('OpenURI Error'))
+        allow(Rails.logger).to receive(:error)
       end
 
-      it 'handles the error gracefully' do
-        expect { crawler.doc }.to output(/Failed to fetch the page: OpenURI Error/).to_stdout
+      it 'logs the error and sets doc to nil' do
+        expect(Rails.logger).to receive(:error).with("Failed to fetch the page: OpenURI Error")
         expect(crawler.doc).to be_nil
       end
     end

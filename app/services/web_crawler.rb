@@ -9,7 +9,7 @@ class WebCrawler
   def fetch_page
     Nokogiri::HTML(URI.open(ensure_https(url)))
   rescue StandardError => e
-    puts "Failed to fetch the page: #{e.message}"
+    Rails.logger.error "Failed to fetch the page: #{e.message}"
     nil
   end
 
@@ -39,9 +39,6 @@ class WebCrawler
   private
 
   def ensure_https(url)
-    unless url.start_with?("https://")
-      url = "https://#{url}"
-    end
-    url
+    url = url.start_with?("https://") ? url : "https://#{url}"
   end
 end
