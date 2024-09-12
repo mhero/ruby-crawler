@@ -18,7 +18,7 @@ class WebCrawler
 
     doc.text.include?(text)
   end
-  
+
   def extract_links
     return [] unless doc
 
