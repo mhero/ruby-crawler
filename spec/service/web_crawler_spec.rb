@@ -46,6 +46,36 @@ RSpec.describe WebCrawler, type: :service do
     end
   end
 
+  describe '#extract_links' do
+    before do
+      allow(crawler).to receive(:doc).and_return(Nokogiri::HTML('<html><body><a href="https://link1.com">Link1</a><a href="https://link2.com">Link2</a></body></html>'))
+    end
+
+    it 'returns an array of unique links' do
+      expect(crawler.extract_links).to contain_exactly('https://link1.com', 'https://link2.com')
+    end
+  end
+
+  describe '#count_images' do
+    before do
+      allow(crawler).to receive(:doc).and_return(Nokogiri::HTML('<html><body><img src="image1.jpg"/><img src="image2.jpg"/></body></html>'))
+    end
+
+    it 'returns the number of images on the page' do
+      expect(crawler.count_images).to eq(2)
+    end
+  end
+
+  describe '#count_urls' do
+    before do
+      allow(crawler).to receive(:doc).and_return(Nokogiri::HTML('<html><body><a href="https://link1.com">Link1</a><a href="https://link2.com">Link2</a></body></html>'))
+    end
+
+    it 'returns the number of URLs on the page' do
+      expect(crawler.count_urls).to eq(2)
+    end
+  end
+
   describe '#ensure_https' do
     it 'prepends https to a non-https URL' do
       expect(crawler.send(:ensure_https, 'example.com')).to eq('https://example.com')

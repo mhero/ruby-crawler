@@ -18,6 +18,23 @@ class WebCrawler
 
     doc.text.include?(text)
   end
+  
+  def extract_links
+    return [] unless doc
+
+    links = doc.css("a").map { |link| link["href"] }
+    links.compact.uniq
+  end
+
+  def count_urls
+    extract_links.count
+  end
+
+  def count_images
+    return 0 unless doc
+
+    doc.css("img").count
+  end
 
   private
 
