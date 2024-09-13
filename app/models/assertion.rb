@@ -5,28 +5,36 @@ class Assertion < ApplicationRecord
   validates :links_number, numericality: { only_integer: true }
   validates :images_number, numericality: { only_integer: true }
 
-
   def self.build_from_web_crawler(params)
     url = params[:url]
-    return nil unless url.present?
+    return Outcome.failure("Url is not present") unless url.present?
 
     text = params[:text]
-    return nil unless url.present?
+    return Outcome.failure("Text is not present") unless text.present?
 
-    crawler = WebCrawler.new(url)
+    document_outcome = WebCrawler.call(url)
 
-    new(
-      url: url,
-      text: text,
-      status: status(crawler, text),
-      links_number: crawler.count_urls,
-      images_number: crawler.count_images
-    )
+    if document_outcome.success?
+      analyzer = DocumentAnalyzer.call(document_outcome.value)
+
+      Outcome.success(
+        Assertion.new(
+          url: url,
+          text: text,
+          status: status(analyzer, text),
+          links_number: analyzer.count_urls,
+          images_number: analyzer.count_images
+        ),
+        "Succesful parse"
+      )
+    else
+      Outcome.failure(document_outcome.message)
+    end
   end
 
   private
 
-  def self.status(crawler, text)
-    crawler.text_exists?(text) ? "PASS" : "FAIL"
+  def self.status(analyzer, text)
+    analyzer.text_exists?(text) ? "PASS" : "FAIL"
   end
 end

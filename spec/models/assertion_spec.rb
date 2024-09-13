@@ -16,46 +16,64 @@ RSpec.describe Assertion, type: :model do
   it { should have_db_column(:images_number).of_type(:integer) }
 
   describe '.build_from_web_crawler' do
-    let(:url) { 'http://example.com' }
-    let(:text) { 'Example Domain' }
-    let(:params) { ActionController::Parameters.new({ url: url, text: text }) }
+    let(:valid_params) { { url: 'https://example.com', text: 'Example text' } }
+    let(:invalid_params) { { url: '', text: '' } }
 
-    before do
-      allow_any_instance_of(WebCrawler).to receive(:text_exists?).and_return(true)
-      allow_any_instance_of(WebCrawler).to receive(:count_urls).and_return(5)
-      allow_any_instance_of(WebCrawler).to receive(:count_images).and_return(3)
+    context 'when the URL is missing' do
+      it 'returns a failure outcome with an appropriate message' do
+        outcome = Assertion.build_from_web_crawler(invalid_params)
+        expect(outcome.failure?).to be true
+        expect(outcome.message).to eq('Url is not present')
+      end
     end
 
-    it 'creates an Assertion with correct attributes' do
-      assertion = Assertion.build_from_web_crawler(params)
-
-      expect(assertion).to be_valid
-      expect(assertion.url).to eq(url)
-      expect(assertion.text).to eq(text)
-      expect(assertion.status).to eq('PASS')
-      expect(assertion.links_number).to eq(5)
-      expect(assertion.images_number).to eq(3)
+    context 'when the text is missing' do
+      it 'returns a failure outcome with an appropriate message' do
+        invalid_params = { url: 'https://example.com', text: '' }
+        outcome = Assertion.build_from_web_crawler(invalid_params)
+        expect(outcome.failure?).to be true
+        expect(outcome.message).to eq('Text is not present')
+      end
     end
 
-    context 'when text does not exist on the page' do
+    context 'when the web crawler fetches the page successfully' do
+      let(:mock_doc) { Nokogiri::HTML('<html><body>Hello world <a href="https://link.com">link</a><img src="image.jpg"/></body></html>') }
+
       before do
-        allow_any_instance_of(WebCrawler).to receive(:text_exists?).and_return(false)
+        allow(WebCrawler).to receive(:call).and_return(Outcome.success(mock_doc))
+        allow(DocumentAnalyzer).to receive(:call).with(mock_doc).and_return(
+          instance_double(
+            DocumentAnalyzer,
+            text_exists?: true,
+            count_urls: 1,
+            count_images: 1
+          )
+        )
       end
 
-      it 'sets status to FAIL' do
-        assertion = Assertion.build_from_web_crawler(params)
+      it 'returns a successful outcome with a new Assertion object' do
+        outcome = Assertion.build_from_web_crawler(valid_params)
 
-        expect(assertion).to be_valid
-        expect(assertion.status).to eq('FAIL')
+        expect(outcome.success?).to be true
+        assertion = outcome.value
+        expect(assertion).to be_a(Assertion)
+        expect(assertion.url).to eq(valid_params[:url])
+        expect(assertion.text).to eq(valid_params[:text])
+        expect(assertion.status).to eq('PASS')
+        expect(assertion.links_number).to eq(1)
+        expect(assertion.images_number).to eq(1)
       end
     end
 
-    context 'when URL is missing' do
-      let(:params) { ActionController::Parameters.new({ text: text }) }
+    context 'when the web crawler fails to fetch the page' do
+      before do
+        allow(WebCrawler).to receive(:call).and_return(Outcome.failure('OpenURI Error'))
+      end
 
-      it 'returns nil' do
-        assertion = Assertion.build_from_web_crawler(params)
-        expect(assertion).to be_nil
+      it 'returns a failure outcome with an appropriate message' do
+        outcome = Assertion.build_from_web_crawler(valid_params)
+        expect(outcome.failure?).to be true
+        expect(outcome.message).to eq('OpenURI Error')
       end
     end
   end
