@@ -12,13 +12,12 @@ module Api
       end
 
       def create
-        @assertion = Assertion.build_from_web_crawler(assertion_params)
-        if @assertion.nil?
-          render json: { error: "Invalid URL" }, status: :unprocessable_entity
-        elsif @assertion.save
-          render json: @assertion, status: :created
+        @result = Assertion.build_from_web_crawler(assertion_params)
+
+        if @result.success? && @result.value.save
+          render json: @result.value, status: :created
         else
-          render json: @assertion.errors, status: :unprocessable_entity
+          render json: { error: create_errors }, status: :unprocessable_entity
         end
       end
 
@@ -29,6 +28,10 @@ module Api
       end
 
       private
+
+      def create_errors
+        @result.failure? ? @result.message : @result.value.errors.full_messages.join(", ")
+      end
 
       def assertion_params
         params.require(:assertion).permit(:url, :text)
