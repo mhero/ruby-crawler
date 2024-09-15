@@ -126,11 +126,13 @@ This project implements a web crawler API using **Ruby on Rails**. It uses **Nok
 While these features were not completed due to time constraints, they were part of the project's planned enhancements:
 
 1. **Asynchronous Screenshot Capture**:
-   - The call to the `Screenshoter` would be handled asynchronously to avoid interrupting the main request flow. Upon submitting an assertion, the system would store the image ID(a generated UUID) in the `Assertion` model and delegate the screenshot capture to an asynchronous service:
-     ```ruby
-     ScreenshotJob.call(image_uuid, assertion.id)
-     ```
-     This way, the screenshot would be linked to the assertion once the `Screenshoter` finishes processing.
+
+   - The call to the `Screenshoter` will be handled asynchronously to avoid blocking the main request flow. When an assertion is submitted, a background job can be triggered with the `Assertion` model ID:
+   ```ruby
+   ScreenshotJob.call(assertion.id)
+   ```
+   Once the `Screenshoter` completes, it updates the `Assertion` with the path to the saved image.
+   * This was updated after the fact in branch `async-call-screenshot`
 
 2. **External CDN for Image Hosting**:
    - To prevent overloading the project's infrastructure with image storage, we could use a CDN (Content Delivery Network) to host screenshots. This approach would provide faster access to images and reduce the load on the local system.
