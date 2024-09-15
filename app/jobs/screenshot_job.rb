@@ -9,6 +9,7 @@ class ScreenshotJob < ApplicationJob
     assertion = Assertion.find(assertion_id)
     output_path = Rails.root.join("public", "screenshots", "#{SecureRandom.uuid}.png")
 
-    screenshot = Screenshoter.capture(assertion.url, output_path)
+    Screenshoter.capture(assertion.url, output_path)
+    assertion.update!(local_path: output_path)
   end
 end
