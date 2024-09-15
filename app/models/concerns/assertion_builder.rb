@@ -6,6 +6,7 @@ module AssertionBuilder
     def build_from_web_crawler(params)
       url = params[:url]
       return Outcome.failure("Url is not present") unless url.present?
+      url = ensure_https(url)
 
       text = params[:text]
       return Outcome.failure("Text is not present") unless text.present?
@@ -31,6 +32,10 @@ module AssertionBuilder
     end
 
     private
+
+    def ensure_https(url)
+      url.start_with?("https://") ? url : "https://#{url}"
+    end
 
     def status(analyzer, text)
       analyzer.text_exists?(text) ? "PASS" : "FAIL"
