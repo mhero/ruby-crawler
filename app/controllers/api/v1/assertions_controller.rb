@@ -15,6 +15,8 @@ module Api
         @result = Assertion.build_from_web_crawler(assertion_params)
 
         if @result.success? && @result.value.save
+          ScreenshotJob.call(@result.value.id)
+
           render json: @result.value, status: :created
         else
           render json: { error: create_errors }, status: :unprocessable_entity
