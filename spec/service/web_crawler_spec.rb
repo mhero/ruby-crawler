@@ -30,16 +30,4 @@ RSpec.describe WebCrawler, type: :service do
       end
     end
   end
-
-  describe '#ensure_https' do
-    it 'prepends https to a non-https URL' do
-      service = WebCrawler.new('example.com')
-      expect(service.send(:ensure_https, 'example.com')).to eq('https://example.com')
-    end
-
-    it 'returns the URL if it already starts with https' do
-      service = WebCrawler.new('https://example.com')
-      expect(service.send(:ensure_https, 'https://example.com')).to eq('https://example.com')
-    end
-  end
 end

@@ -4,7 +4,7 @@ class WebCrawler
   end
 
   def initialize(url)
-    @url = ensure_https(url)
+    @url = UrlParser.ensure_https(url)
   end
 
   def call
@@ -20,9 +20,5 @@ class WebCrawler
   rescue StandardError => e
     Rails.logger.error "Failed to fetch the page: #{e.message}"
     Outcome.failure(e.message)
-  end
-
-  def ensure_https(url)
-    url.start_with?("https://") ? url : "https://#{url}"
   end
 end
