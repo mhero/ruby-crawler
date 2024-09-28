@@ -1,6 +1,7 @@
-## Web Crawler App
+## Web Crawler API
 
-The API exposes a web crawler.
+This Ruby project exposes an API that allows you to crawl web pages, search for specific content, and capture screenshots of the page, which are stored locally as PNG files. The API also returns metadata like the number of links and images found on the page. It’s designed to streamline web scraping with a simple and flexible interface.
+
 
 ## Dependencies
 
