@@ -46,7 +46,7 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
-  gem "rubocop", "~> 1.75"
+  gem "rubocop", "~> 1.79"
   gem "rubocop-rails"
   gem "rubocop-performance"
   gem "rspec-rails"
@@ -54,5 +54,5 @@ group :development, :test do
 end
 
 group :test do
-  gem "shoulda-matchers", "~> 6.4"
+  gem "shoulda-matchers", "~> 6.5"
 end
