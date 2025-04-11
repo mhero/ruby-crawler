@@ -5,7 +5,7 @@ This Ruby project exposes an API that allows you to crawl web pages, search for 
 
 ## Dependencies
 
-- Ruby 3.3.5
+- Ruby 3.4.5
 
 ## App Info
 
