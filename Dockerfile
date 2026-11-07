@@ -1,31 +1,36 @@
-FROM ruby:3.3.5-bullseye
+FROM ruby:4.0.9-trixie
 
-ENV APP_HOME /myapp
-RUN mkdir $APP_HOME
+ENV APP_HOME=/myapp
+RUN mkdir -p $APP_HOME
 WORKDIR $APP_HOME
 
-# Install ImageMagick and its dependencies
+# Install system dependencies
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y libmagickwand-dev imagemagick firefox-esr wget && \
+    apt-get install --no-install-recommends -y \
+    libmagickwand-dev \
+    imagemagick \
+    firefox-esr \
+    wget \
+    ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-# Install GeckoDriver
-ENV GECKODRIVER_VERSION v0.33.0
-RUN wget -q "https://github.com/mozilla/geckodriver/releases/download/${GECKODRIVER_VERSION}/geckodriver-${GECKODRIVER_VERSION}-linux64.tar.gz" \
-    && tar -xzf "geckodriver-${GECKODRIVER_VERSION}-linux64.tar.gz" \
-    && mv geckodriver /usr/local/bin/ \
-    && chmod +x /usr/local/bin/geckodriver \
-    && rm geckodriver-${GECKODRIVER_VERSION}-linux64.tar.gz
+# Install latest GeckoDriver
+ENV GECKODRIVER_VERSION=v0.37.1
 
-# Install Bundler and Rake
-RUN gem install bundler -v 2.3.3 && bundle config jobs 7
-RUN gem install rake -v 13.2.1
+RUN wget -q "https://github.com/mozilla/geckodriver/releases/download/${GECKODRIVER_VERSION}/geckodriver-${GECKODRIVER_VERSION}-linux64.tar.gz" && \
+    tar -xzf geckodriver-${GECKODRIVER_VERSION}-linux64.tar.gz && \
+    mv geckodriver /usr/local/bin/ && \
+    chmod +x /usr/local/bin/geckodriver && \
+    rm geckodriver-${GECKODRIVER_VERSION}-linux64.tar.gz
 
-ADD Gemfile $APP_HOME/
-ADD Gemfile.lock $APP_HOME/
+# Install latest Bundler and Rake
+RUN gem install bundler rake && bundle config set jobs 7
+
+# Install dependencies
+COPY Gemfile Gemfile.lock ./
 RUN bundle install
 
-ADD Gemfile.tip $APP_HOME/
+COPY Gemfile.tip ./
 RUN bundle install
 
-ADD . $APP_HOME
+COPY . .
